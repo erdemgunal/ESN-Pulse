@@ -6,13 +6,16 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock
 import queue
 from data_processor import process_organisation_data
+from pathlib import Path
+
+LOG_FILE_PATH = Path(__file__).parent.parent / "logs" / f"esn_processing_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler(f"esn_processing_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"),
+        logging.FileHandler(LOG_FILE_PATH),
         logging.StreamHandler()
     ]
 )
