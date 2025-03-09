@@ -1,4 +1,4 @@
-from src.database.database_utils import save_scraped_data
+from src.database.database_utils import save_scraped_data, get_db_connection
 from src.database.config import DB_CONFIG
 from src.scraping.statistics_scraper import StatisticsScraper
 from src.scraping.organisations_scraper import OrganisationsScraper
@@ -7,6 +7,48 @@ import logging
 
 # Configure logging for this module
 logger = logging.getLogger(__name__)
+
+def check_organisation_exists(organisation_id):
+    """
+    Check if the organisation already exists in the database with complete data.
+    
+    Args:
+        organisation_id (str): The ESN organisation ID
+        
+    Returns:
+        bool: True if organisation exists with complete data, False otherwise
+    """
+    conn = get_db_connection(DB_CONFIG)
+    if not conn:
+        return False
+        
+    try:
+        cursor = conn.cursor()
+        
+        # Check if organisation exists with activities
+        query = """
+        SELECT o.organisation_id, 
+               (SELECT COUNT(*) FROM activities a WHERE a.organisation_id = o.organisation_id) as activity_count,
+               (SELECT COUNT(*) FROM statistics s WHERE s.organisation_id = o.organisation_id) as has_statistics
+        FROM organisations o 
+        WHERE o.organisation_id = %s
+        """
+        
+        cursor.execute(query, (organisation_id,))
+        result = cursor.fetchone()
+        
+        if result:
+            org_id, activities_count, has_statistics = result
+            # Return True only if organisation exists with activities and statistics
+            return activities_count > 0 and has_statistics > 0
+            
+        return False
+        
+    except Exception as e:
+        logger.error(f"Error checking organisation existence: {e}")
+        return False
+    finally:
+        conn.close()
 
 def process_organisation_data(organisation_id, organisation_details=None):
     """
@@ -20,6 +62,11 @@ def process_organisation_data(organisation_id, organisation_details=None):
         dict: Operation results
     """
     logger.info(f"Processing data for organisation: {organisation_id}")
+    
+    # Check if organisation already exists in database with complete data
+    if check_organisation_exists(organisation_id):
+        logger.info(f"Organisation {organisation_id} already exists in database with complete data. Skipping processing.")
+        return {"success": True, "message": "already exists", "skip_reason": "complete_data_exists"}
     
     # 1. Use provided details or scrape organisation details
     if organisation_details and organisation_details.get('organisation_id') == organisation_id:
