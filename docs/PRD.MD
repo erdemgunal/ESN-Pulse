@@ -64,9 +64,19 @@ Proje, aşağıdaki URL'lerden veri toplamayı hedeflemektedir:
 * **Şubeler (Organisations) Tablosu:**
     * `organisation_id` (PK)
     * `organisation_name`
+    * `country_code`
+    * `city`
+    * `country`
+    * `email`
+    * `website`
+    * `longitude`
+    * `university_name`
+    * `university_website`
+    * `social_media` (JSON)
     * `activity_count`
     * `city_count`
     * `participant_count`
+
 * **Etkinlikler (Activities) Tablosu:**
     * `activity_id` (PK)
     * `organisation_id` (FK)
@@ -82,6 +92,7 @@ Proje, aşağıdaki URL'lerden veri toplamayı hedeflemektedir:
     * `sdg_goals`
     * `activity_objectives`
     * `activity_organiser`
+
 * **İstatistikler (Statistics) Tablosu:**
     * `organisation_id` (FK)
     * `total_physical_activities`
@@ -96,8 +107,8 @@ Proje, aşağıdaki URL'lerden veri toplamayı hedeflemektedir:
     * `education_youth_activities`
     * `health_wellbeing_activities`
     * `skills_employability_activities`
-    * `physical_activity_types`
-    * `online_activity_types`
+    * `physical_activity_types` (JSON)
+    * `online_activity_types` (JSON)
 
 ## 8. Kullanım Alanları
 

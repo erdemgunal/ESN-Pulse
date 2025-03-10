@@ -10,6 +10,10 @@ from pathlib import Path
 
 LOG_FILE_PATH = Path(__file__).parent.parent / "logs" / f"esn_processing_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
 
+# Create logs directory if it doesn't exist
+logs_dir = Path(__file__).parent.parent / "logs"
+logs_dir.mkdir(parents=True, exist_ok=True)
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
