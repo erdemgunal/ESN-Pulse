@@ -1,4 +1,4 @@
-erDiagram
+```erDiagram
     countries {
         VARCHAR country_code PK "Ülke Kodu (örn. TR)"
         VARCHAR name "Ülke Adı"
@@ -154,4 +154,4 @@ erDiagram
     sections }|--|{ activity_section_organisers : "organises"
     activity_causes }|--|{ activity_to_cause : "has"
     sdgs }|--|{ activity_to_sdg : "has"
-    objectives }|--|{ activity_to_objective : "has"
+    objectives }|--|{ activity_to_objective : "has"```
