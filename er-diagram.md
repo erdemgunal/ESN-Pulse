@@ -1,4 +1,5 @@
-```erDiagram
+```mermaid
+erDiagram
     countries {
         VARCHAR country_code PK "Ülke Kodu (örn. TR)"
         VARCHAR name "Ülke Adı"
