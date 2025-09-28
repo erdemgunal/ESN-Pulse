@@ -56,22 +56,16 @@ class BaseScraper(ABC):
         
     async def _initialize_session(self):
         """Initialize HTTP session."""
-        print("🔄 Initializing HTTP session...")
         if not self.http_client:
-            print("📡 Creating new HTTP client...")
             self.http_client = ESNHTTPClient()
             await self.http_client.__aenter__()
-            print("✅ HTTP client created and initialized")
         logger.info(f"Initialized {self.__class__.__name__} session")
         
     async def _cleanup_session(self):
         """Cleanup HTTP session."""
-        print("🔄 Cleaning up HTTP session...")
         if self.http_client:
-            print("🗑️ Closing HTTP client...")
             await self.http_client.__aexit__(None, None, None)
             self.http_client = None
-            print("✅ HTTP client closed")
         
         logger.info(
             f"{self.__class__.__name__} session ended. Stats: {self.session_stats}"
@@ -96,27 +90,22 @@ class BaseScraper(ABC):
             ScrapingError: If all retries failed
         """
         if not self.http_client:
-            print(f"⚠️ HTTP client not initialized for URL: {url}")
             await self._initialize_session()
             
         max_retries = max_retries or settings.MAX_RETRIES
-        print(f"🔄 Getting page content from {url} (max retries: {max_retries})")
         
         for attempt in range(max_retries + 1):
             try:
-                print(f"🌐 Attempt {attempt + 1}/{max_retries + 1} for URL: {url}")
                 self.session_stats["requests_made"] += 1
                 
                 # Rate limiting
                 delay = settings.SCRAPING_DELAY
-                print(f"⏳ Waiting {delay}s before request...")
                 await asyncio.sleep(delay)
                 
                 print(f"============================== 📡 Sending request to: {url} ==============================")
                 content = await self.http_client.get_with_retry(url, max_retries=1)
                 self.session_stats["requests_successful"] += 1
                 
-                print(f"✅ Successfully fetched content from: {url}")
                 logger.debug(f"Successfully fetched: {url}")
                 return content
                 
@@ -126,9 +115,6 @@ class BaseScraper(ABC):
                 if attempt < max_retries:
                     # Exponential backoff
                     wait_time = 2 ** attempt
-                    print(f"❌ Request failed for: {url} (Attempt {attempt + 1}/{max_retries + 1})")
-                    print(f"⚠️ Error: {str(e)}")
-                    print(f"⏳ Retrying in {wait_time}s...")
                     logger.warning(
                         f"Request failed (attempt {attempt + 1}/{max_retries + 1}). "
                         f"Retrying in {wait_time}s. URL: {url}, Error: {str(e)}"
@@ -136,8 +122,6 @@ class BaseScraper(ABC):
                     await asyncio.sleep(wait_time)
                     self.session_stats["retries_performed"] += 1
                 else:
-                    print(f"❌ All retries failed for: {url}")
-                    print(f"⚠️ Final error: {str(e)}")
                     logger.error(f"All retries failed for URL: {url}")
                     raise ScrapingError(url, 0, str(e))
     
@@ -186,7 +170,6 @@ class BaseScraper(ABC):
         try:
             response = await self.http_client.head(url)
             exists = response.status == 200
-            # print(f"Slug validation result: {exists} (Status: {response.status})")
             logger.debug(f"Slug validation for {slug}: {exists}")
             return exists
             

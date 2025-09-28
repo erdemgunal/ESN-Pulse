@@ -90,6 +90,9 @@ CREATE TABLE IF NOT EXISTS activities (
     participants INTEGER CHECK (participants >= 0),
     activity_type VARCHAR(100),
     
+    -- Activity goal
+    activity_goal TEXT,
+    
     -- Data quality
     is_valid BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT NOW(),

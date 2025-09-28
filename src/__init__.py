@@ -15,8 +15,8 @@ Modüller:
 """
 
 __version__ = "1.0.0"
-__author__ = "ESN PULSE Team"
-__email__ = "esnpulse@example.com"
+__author__ = "hakki"
+__email__ = "me@hakki.info"
 
 # Package level imports
 from .config import settings 

@@ -7,7 +7,7 @@ Async context manager kullanarak connection pooling sağlar.
 
 import asyncio
 import logging
-from typing import Optional, AsyncGenerator
+from typing import Optional, AsyncGenerator, List, Dict, Any
 from contextlib import asynccontextmanager
 
 import asyncpg
@@ -144,28 +144,17 @@ class DatabaseConnection:
         
         return results
     
-    async def bulk_insert(
-        self, 
-        table: str, 
-        columns: list, 
-        records: list
-    ):
+    async def bulk_insert(self, table: str, columns: List[str], data: List[Dict[str, Any]]):
         """
-        Bulk insert records using COPY.
-        
-        Args:
-            table: Table name
-            columns: List of column names
-            records: List of tuples containing record data
+        Bulk insert data into a table.
         """
-        async with self.get_connection() as conn:
-            await conn.copy_records_to_table(
-                table,
-                records=records,
-                columns=columns
+        async with self.get_transaction() as conn:
+            placeholders = ', '.join(['$' + str(i+1) for i in range(len(columns))])
+            await conn.executemany(
+                f"INSERT INTO {table} ({', '.join(columns)}) VALUES ({placeholders})", 
+                data
             )
-        
-        logger.info(f"Bulk inserted {len(records)} records into {table}")
+
     
     async def health_check(self) -> bool:
         """

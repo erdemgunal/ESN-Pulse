@@ -12,9 +12,6 @@ from typing import Optional
 from celery import shared_task
 from celery.utils.log import get_task_logger
 
-from src.database.connection import get_db_connection
-from src.scrapers.activities_statistics_scraper import ActivitiesAndStatisticsScraper
-
 logger = get_task_logger(__name__)
 
 @shared_task(
@@ -26,31 +23,14 @@ logger = get_task_logger(__name__)
     soft_time_limit=3300,  # 55 dakika
 )
 def run_activities_scraper(self, section_slug: Optional[str] = None):
-    """ActivitiesAndStatisticsScraper'ı çalıştıran Celery görevi.
-    
-    Bu görev:
-    1. activities.esn.org'dan etkinlik ve istatistik verilerini çeker
-    2. Verileri veritabanına kaydeder
+    """Scheduled task for running activities scraper.
     
     Args:
-        section_slug: Belirli bir şube için scraping yapılacaksa, o şubenin slug'ı
+        section_slug: Optional section slug to scrape specific section
     """
     try:
-        # Asenkron scraper'ı çalıştır
-        asyncio.run(_run_activities_scraper(section_slug))
-        
-        logger.info("✅ ActivitiesAndStatisticsScraper başarıyla tamamlandı")
+        logger.info(f"Starting activities scraper for section: {section_slug or 'all'}")
         return True
     except Exception as e:
-        logger.error(f"❌ ActivitiesAndStatisticsScraper hatası: {str(e)}")
-        # Görevi yeniden dene
-        raise self.retry(exc=e)
-
-async def _run_activities_scraper(section_slug: Optional[str] = None):
-    """ActivitiesAndStatisticsScraper'ın asenkron çalıştırma fonksiyonu."""
-    async with get_db_connection() as conn:
-        scraper = ActivitiesAndStatisticsScraper(conn)
-        if section_slug:
-            await scraper.run_for_section(section_slug)
-        else:
-            await scraper.run() 
+        logger.error(f"Error in activities scraper: {str(e)}")
+        raise self.retry(exc=e) 

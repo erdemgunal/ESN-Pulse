@@ -9,7 +9,7 @@ import os
 from celery import Celery
 from celery.schedules import crontab
 
-from src.config import settings
+from ..config import settings
 
 # Celery app oluştur
 celery_app = Celery(
@@ -18,7 +18,8 @@ celery_app = Celery(
     backend=settings.CELERY_RESULT_BACKEND,
     include=[
         'src.tasks.accounts_tasks',
-        'src.tasks.activities_tasks'
+        'src.tasks.activities_tasks',
+        'src.tasks.activities_chunk_task'
     ]
 )
 

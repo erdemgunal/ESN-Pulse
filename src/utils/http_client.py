@@ -42,24 +42,18 @@ class ESNHTTPClient:
     
     async def __aenter__(self) -> "ESNHTTPClient":
         """Context manager entry."""
-        print("🔄 Initializing HTTP client...")
         if not self.session:
-            print("📡 Creating new aiohttp session...")
             self.session = aiohttp.ClientSession(
                 timeout=self.timeout,
                 headers={"User-Agent": random.choice(self.user_agents)}
             )
-            print("✅ aiohttp session created")
         return self
     
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         """Context manager exit."""
-        print("🔄 Cleaning up HTTP client...")
         if self.session:
-            print("🗑️ Closing aiohttp session...")
             await self.session.close()
             self.session = None
-            print("✅ aiohttp session closed")
     
     async def get(
         self,
@@ -86,21 +80,18 @@ class ESNHTTPClient:
             TimeoutError: İstek zaman aşımına uğradığında
         """
         if not self.session:
-            print(f"⚠️ Session not initialized for URL: {url}")
             await self.__aenter__()
         
         # İnsansı davranış simülasyonu
         await self._simulate_human_behavior()
         
         try:
-            print(f"🌐 Sending GET request to: {url}")
             # İsteği gönder
             response = await self.session.get(
                 url,
                 params=params,
                 headers=headers
             )
-            print(f"✅ Response received: {response.status} {response.reason}")
             
             # Yanıtı kontrol et
             await self._check_response(response)
@@ -108,12 +99,10 @@ class ESNHTTPClient:
             return response
         
         except aiohttp.ClientError as e:
-            print(f"❌ Network error for {url}: {str(e)}")
             # Yeniden deneme sayısını kontrol et
             if retry_count < self.max_retries:
                 # Üstel geri çekilme
                 wait_time = 2 ** retry_count
-                print(f"⏳ Retrying in {wait_time}s...")
                 await asyncio.sleep(wait_time)
                 return await self.get(
                     url,
@@ -128,7 +117,6 @@ class ESNHTTPClient:
             ) from e
         
         except asyncio.TimeoutError as e:
-            print(f"⌛ Timeout error for {url}")
             raise TimeoutError(
                 f"HTTP isteği zaman aşımına uğradı: {url}",
                 url=url
@@ -163,43 +151,29 @@ class ESNHTTPClient:
         
         while retry_count <= max_retries:
             try:
-                print(f"🌐 Sending GET request to: {url}")
-                print(f"📡 Request parameters: {params}")
-                print(f"📨 Request headers: {headers}")
-                
                 response = await self.get(url, params=params, headers=headers)
-                print(f"✅ Response received: {response.status} {response.reason}")
                 
                 content = await response.text()
-                print(f"📄 Response content length: {len(content)} bytes")
                 
                 if response.status == 200:
-                    print(f"✅ Successfully fetched content from: {url}")
                     return content
                 elif response.status == 404:
-                    print(f"⚠️ Page not found: {url}")
                     return ""  # Boş sayfa döndür, böylece sayfalandırma döngüsü sonlanır
                 else:
-                    print(f"⚠️ Non-200 status code: {response.status} {response.reason}")
                     return content
                 
             except (NetworkError, TimeoutError) as e:
                 retry_count += 1
-                print(f"❌ Request failed for: {url} (Attempt {retry_count}/{max_retries})")
-                print(f"⚠️ Error: {str(e)}")
                 
                 if retry_count > max_retries:
-                    print(f"❌ All retries failed for: {url}")
                     raise
                 
                 # Üstel geri çekilme
                 wait_time = 2 ** retry_count
-                print(f"⏳ Retrying in {wait_time}s...")
                 await asyncio.sleep(wait_time)
                 continue
                 
             except (RateLimitError, CloudflareError) as e:
-                print(f"⚠️ {str(e)} for: {url}")
                 raise
     
     async def head(

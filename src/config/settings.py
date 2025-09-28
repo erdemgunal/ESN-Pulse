@@ -1,10 +1,3 @@
-"""
-ESN PULSE Settings ve Konfigürasyon Yönetimi
-
-Bu dosya projenin tüm konfigürasyon ayarlarını environment variables
-üzerinden yönetir.
-"""
-
 import os
 from typing import List, Optional
 from pydantic import Field, validator
@@ -12,8 +5,6 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    """ESN PULSE application settings."""
-    
     # Application
     APP_NAME: str = Field(default="ESN PULSE", env="APP_NAME")
     APP_VERSION: str = Field(default="1.0.0", env="APP_VERSION")
@@ -101,7 +92,7 @@ class Settings(BaseSettings):
         env_file = ".env"
         env_file_encoding = "utf-8"
         case_sensitive = True
-
+        extra = "ignore"
 
 # Global settings instance
 settings = Settings() 

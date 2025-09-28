@@ -384,4 +384,23 @@ class DatabaseOperations:
             WHERE id = $1
             RETURNING *
         """
-        return await self.conn.fetchrow(query, section_id) 
+        return await self.conn.fetchrow(query, section_id)
+
+    async def update_country_section_count(self, country_code: str, section_count: int) -> Record:
+        """Ülkenin section sayısını günceller.
+        
+        Args:
+            country_code: Ülke kodu
+            section_count: Güncel section sayısı
+        
+        Returns:
+            Güncellenen ülke kaydı
+        """
+        query = """
+            UPDATE countries
+            SET section_count = $2,
+                updated_at = NOW()
+            WHERE country_code = $1
+            RETURNING *
+        """
+        return await self.conn.fetchrow(query, country_code, section_count)

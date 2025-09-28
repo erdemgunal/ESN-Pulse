@@ -66,3 +66,4 @@ backups/
 celerybeat-schedule*
 *.log
 tests/
+DEVELOPMENT_WORKFLOW.md

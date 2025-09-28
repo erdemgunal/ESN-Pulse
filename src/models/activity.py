@@ -24,6 +24,7 @@ class ActivityModel(BaseModel):
         city: Etkinlik şehri
         country_code: Ülke kodu
         participants: Katılımcı sayısı
+        activity_goal: Etkinlik amacı
         activity_type: Etkinlik türü
         is_future_event: Gelecekteki etkinlik mi
         organisers: Düzenleyici şubeler
@@ -99,6 +100,11 @@ class ActivityModel(BaseModel):
         description="Type of activity"
     )
     
+    activity_goal: Optional[str] = Field(
+        None,
+        description="Goal of the activity"
+    )
+    
     # Computed fields
     is_future_event: bool = Field(
         ...,
@@ -116,9 +122,9 @@ class ActivityModel(BaseModel):
         description="List of activity causes"
     )
     
-    sdgs: List[str] = Field(
+    sdgs: List[int] = Field(
         default_factory=list,
-        description="List of Sustainable Development Goals"
+        description="List of Sustainable Development Goals numbers (1-17)"
     )
     
     objectives: List[str] = Field(
@@ -203,7 +209,7 @@ class ActivityModel(BaseModel):
             raise ValueError('Participant count seems unreasonably high')
         return v
     
-    @validator('organisers', 'causes', 'sdgs', 'objectives')
+    @validator('organisers', 'causes', 'objectives')
     def validate_lists(cls, v):
         """Validate list fields."""
         if v is None:
@@ -216,6 +222,29 @@ class ActivityModel(BaseModel):
                 cleaned_item = item.strip()
                 if cleaned_item not in cleaned:
                     cleaned.append(cleaned_item)
+        
+        return cleaned
+
+    @validator('sdgs')
+    def validate_sdgs(cls, v):
+        """Validate SDGs numbers."""
+        if v is None:
+            return []
+        
+        # Remove duplicates and validate numbers
+        cleaned = []
+        for item in v:
+            if not isinstance(item, int):
+                try:
+                    item = int(item)
+                except (ValueError, TypeError):
+                    raise ValueError('SDG must be a number between 1 and 17')
+            
+            if not 1 <= item <= 17:  # SDGs are numbered 1-17
+                raise ValueError('SDG number must be between 1 and 17')
+            
+            if item not in cleaned:
+                cleaned.append(item)
         
         return cleaned
     
@@ -245,10 +274,11 @@ class ActivityModel(BaseModel):
                 "country_code": "TR",
                 "participants": 160,
                 "activity_type": "Game or Social Activity",
+                "activity_goal": "To have fun and socialize",
                 "is_future_event": False,
                 "organisers": ["ESN Yıldız"],
                 "causes": ["Culture", "Education & Youth"],
-                "sdgs": ["SDG 3", "SDG 4"],
+                "sdgs": [3, 4],
                 "objectives": ["Mental Health & Well-Being"],
                 "is_valid": True
             }
@@ -279,9 +309,10 @@ class ActivityCreateModel(BaseModel):
     country_code: Optional[str] = Field(None, max_length=10)
     participants: int = Field(default=0, ge=0)
     activity_type: Optional[str] = Field(None, max_length=100)
+    activity_goal: Optional[str] = None
     organisers: List[str] = Field(default_factory=list)
     causes: List[str] = Field(default_factory=list)
-    sdgs: List[str] = Field(default_factory=list)
+    sdgs: List[int] = Field(default_factory=list)
     objectives: List[str] = Field(default_factory=list)
     
     class Config:
@@ -313,9 +344,10 @@ class ActivityUpdateModel(BaseModel):
     country_code: Optional[str] = Field(None, max_length=10)
     participants: Optional[int] = Field(None, ge=0)
     activity_type: Optional[str] = Field(None, max_length=100)
+    activity_goal: Optional[str] = None
     organisers: Optional[List[str]] = None
     causes: Optional[List[str]] = None
-    sdgs: Optional[List[str]] = None
+    sdgs: Optional[List[int]] = None
     objectives: Optional[List[str]] = None
     is_valid: Optional[bool] = None
     
@@ -343,7 +375,7 @@ class ActivitySearchModel(BaseModel):
     is_future_event: Optional[bool] = None
     organisers: Optional[List[str]] = None
     causes: Optional[List[str]] = None
-    sdgs: Optional[List[str]] = None
+    sdgs: Optional[List[int]] = None
     is_valid: Optional[bool] = None
     
     class Config:

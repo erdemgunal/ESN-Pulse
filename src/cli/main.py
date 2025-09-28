@@ -43,8 +43,20 @@ async def run_activities_scraper(section_slug: Optional[str] = None):
     
     try:
         scraper = ActivitiesAndStatisticsScraper()
-        await scraper.scrape(section_slug=section_slug)
+        
+        # Docker container içinde çalışıyoruz, bu yüzden Redis ve Celery worker'lara erişimimiz var
+        results = await scraper.scrape(section_slug=section_slug)
+        
+        # if results:
+        #     logger.info(f"✅ İşlenen section sayısı: {results['sections_processed']}")
+        #     logger.info(f"✅ İşlenen aktivite sayısı: {results['activities_processed']}")
+        #     logger.info(f"✅ İşlenen istatistik sayısı: {results['statistics_processed']}")
             
+        #     if results['errors']:
+        #         logger.warning("⚠️ Bazı hatalar oluştu:")
+        #         for error in results['errors']:
+        #             logger.warning(f"  - {error}")
+        
         logger.info("✅ ActivitiesAndStatisticsScraper tamamlandı")
         
     except Exception as e:
@@ -88,9 +100,5 @@ def main():
         logger.error(f"❌ Hata: {str(e)}")
         print(f"\n❌ Error: {str(e)}")
         
-    print("-" * 50)
-    print(f"🏁 Finished at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print("✅ ESN PULSE - Completed")
-
 if __name__ == "__main__":
     main() 
